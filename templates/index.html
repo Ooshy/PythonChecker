@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en" ng-app>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="shortcut icon" href="/static/img/favicon.ico"> 
+	<link rel="stylesheet" href="/static/css/vendor/fluidbox.min.css">
+	<link rel="stylesheet" href="/static/css/main.css">
+	<link rel="stylesheet" href="/static/css/bootstrap.css">
+	<!--<link rel="stylesheet" href="/static/css/bootstrap-theme.css">-->
+	<title>Python Checker</title>
+
+	<script language="JavaScript" type="text/javascript">
+	
+      function PythonController($scope) {
+        var socket = io.connect('https://' + document.domain + ':' + location.port + '/checker');
+
+        $scope.currentAssignmentId = "";
+        $scope.currentAssignmentName = "";
+        $scope.currentAdministratorId = "";
+        $scope.currentAdministratorName = "";
+        $scope.assignments = [];
+        $scope.admin_assignments = [];
+        $scope.professors = [];
+        $scope.assignment = '';
+        $scope.assignment_id = '';
+        $scope.token = "";
+        socket.on('connect', function () {
+          //console.log('connected');
+          //socket.emit('connect');
+        });
+        socket.on('add_assignment', function (assignment){
+        	$scope.admin_assignments.push(assignment);
+        	$scope.$apply();
+        });
+        socket.on('load_professor', function (professor) {
+        	$scope.professors.push(professor);	
+        	$scope.$apply();
+        });
+		
+		    
+        $scope.addAssignment = function addAssignment() {
+          
+          socket.emit('add_assignment', {'id': $scope.id, 'name': $scope.assignment});
+          $scope.assignment = '';
+          $scope.$apply();
+        };
+        $scope.updateAssignment = function updateAssignment(){
+        	
+        	
+        };
+         $scope.loadAssignments = function loadAssignments(professor) {
+          console.log('loading assignments');
+          $scope.assignments = [];
+          if (typeof professor == 'number')
+          	socket.emit('load_assignments',  professor);
+          else
+          	socket.emit('load_assignments',  professor.id);
+        };
+ 
+ 		$scope.loadAdministrators = function loadAdministrators(professor) {
+          console.log('loading administrators');
+          $scope.administrators = [];
+          socket.emit('load_administrators');
+        };
+        socket.on("load_administrator", function (administrator) {
+        	console.log('loading administrator...');
+        	$scope.administrators.push(administrator);
+        	$scope.$apply();
+        })
+ 		socket.on('clear_assignments', function(garbage) {
+ 			console.log('clearing assignments')
+ 			$scope.assignments = [];
+ 			$scope.$apply();
+ 		});
+ 		
+        socket.on('load_assignment', function (assignment) {
+          console.log('Loaded assignment: ' + assignment['name']);
+          $scope.assignments.push(assignment);
+          $scope.$apply();
+        });
+        
+        $scope.editAssignment = function (assignment){
+        	console.log('entering edit assignment');
+        	console.log('current_assignment:');
+        	console.log(assignment)
+        	$scope.assignment_id = assignment.assignmentId;
+        	$scope.currentAssignment = assignment;
+        	
+        }
+        
+         $scope.editAdministrator = function (administrator){
+        	console.log('entering edit administrator');
+        	console.log('current_administrator:');
+        	console.log(administrator)
+        	$scope.administrator_id = administrator.administratorId;
+        	$scope.currentAdministrator = administrator;
+        	
+        }
+        $scope.updateAssignment = function(){
+        	
+        };
+        $scope.addAdministrator = function addAdministrator() {
+        	console.log('adding adminsitrator...');
+        	socket.emit('add_administrator', $scope.currentAdministrator);
+        	
+        }
+        $scope.prep_add_administrator = function prep_add_administrator(){
+        	$scope.currentAdministrator = {'firstname' : '', 'lastname' : '', 'role' : '', 'title' : ''};
+        }
+        $scope.uploadAssignment = function uploadAssignment(assignment_id){
+        	console.log('uploading assignment...');
+        	$scope.assignment_id = assignment_id;
+        	document.getElementById("choose_file").click();
+        	socket.emit('uploadAssignment', assignment_id);
+        };
+ 		
+ 		$scope.updateAdministrator = function updateAdministrator(){
+ 			console.log('updating administrator...');
+ 			socket.emit('update_administrator', $scope.currentAdministrator);
+ 		}	
+ 		$scope.validate_token = function validate_token(){
+ 			console.log("validating token...");
+ 			socket.emit("validate_token", $scope.token);
+ 			$scope.token = "";
+ 		};
+ 		socket.on('invalid_token', function(error_message){
+ 			console.log('handling invalid token...');
+ 			var token_message = $("#token_message")
+ 			token_message.attr('class', '');
+ 			token_message.addClass("alert alert-danger");
+ 			token_message.html('<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><span class="sr-only">Error:</span>' + error_message);
+ 		});
+ 		socket.on('valid_token', function(){
+ 			console.log('handling valid token...');
+ 			var token_message = $("#token_message")
+ 			token_message.attr('class', '');
+ 			token_message.addClass("alert alert-success");
+ 			token_message.html('<span class="glyphicon glyphicon glyphicon-check" aria-hidden="true"></span><span class="sr-only">Success!</span> The token was valid.');
+ 		});
+ 		$scope.getAdministratorsFromSuperAdministrator = function getAdministratorsFromSuperAdministrator(adminid){
+ 			$scope.administrators = [];
+ 			socket.emit('getAdministratorsFromSuperAdministrator');
+ 		}
+		$(window).on('beforeunload', function(){
+	    	socket.close()
+		});
+      }
+      
+    </script>
+</head>
+<body style="background-color: #222222">
+<div class="container" ng-controller="PythonController">
+	
+	<header>
+		
+		<div id="logo-container">
+			<div id="logo"><a href="/">Python Checker</a></div>
+			<div id="subtitle">{% block subtitle %}Developed by UMW students{% endblock %}</div>
+		</div>
+ 		<nav>
+			<ul>
+				<li><a href="/"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>
+			<!--	<li><a href="/help">Help</a></li> -->
+			<!--	<li><a href="/help"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>			-->
+			<!--	<li><a href="/about">About</a></li> -->
+			<!--    <li><a href="/about"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></a></li>-->
+			<!--	{% if 'Administrator' in session or 'S-Administrator' in session %}-->
+			<!--	<li><a href="/logout">Logout</a></li>-->
+				<li><a href="/admin_panel"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span></a></li>
+				<li><a href="/logout"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></a></li>
+				{% else %}
+				<!--<li><a href="/admin_panel">Admin Panel</a></li>-->
+				<li><a href="/admin_panel"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></a></li>
+				{% endif %}
+				
+				
+				
+			</ul>
+		</nav> 
+
+	</header>
+	
+	<div id="content">
+	    {% block content %}
+		<section class="intro">
+			<div class="row">
+				<div class="col-xs-12">
+					
+						{% if message == "error" %}
+							<div class="alert alert-warning" role="alert">
+								{{ message_text[0] }}
+							</div>								
+						{% elif message == "success" %}
+							<div class="alert alert-success" role="alert">
+								{{ message_text[0] }}
+							</div>
+						{% endif %}
+				</div>
+			</div>
+			{% if message_text|length > 0 %}
+			<div class="row">
+				<div class="col-xs-12 col-sm-6">
+					<div class="row">
+						<div class="col-xs-12">
+							<h3 class="text-center red_text">Student Output</h3>
+						</div>
+					</div>
+					<div class="panel panel-default dark-panel">
+  						<div class="panel-body gray-panel white_text">
+  							<div class="row">
+  								<div class="col-xs-12 col-xs-push-1">
+		  							<ol style="">
+									{% for text in student_lines %}
+										<li>{{text}}</li>
+									{% endfor %}
+									</ol>			
+  								</div>
+  							</div>
+							
+						</div>
+					</div>
+				</div>
+				<div class="col-xs-12 col-sm-6">
+					<div class="row">
+						<div class="col-xs-12">
+							<h3 class="text-center red_text">Professor Output</h3>
+						</div>
+					</div>
+					<div class="panel panel-default dark-panel">
+  						<div class="panel-body gray-panel white_text">
+  							<div class="row">
+  								<div class="col-xs-12 col-xs-push-1">
+									<ol>
+									{% for text in professor_lines %}
+										<li>{{text}}</li>
+									{% endfor %}
+									</ol>	
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		
+		{% endif %}
+					<div class="panel panel-default dark-panel">
+          				<div class="panel-body dark-panel white_text">
+          						<div class="row">
+									<div class="col-xs-12 col-sm-6 col-md-6">
+										<div class="row">
+											<div class="col-xs-12">
+												<h3 class="text-center red_text">Instructor</h3>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-xs-12">
+												<div class="list-group">
+													 <a ng-repeat="professor in professors" ng-click="loadAssignments(professor)" ng-class="list-group-item" class="list-group-item text-center"> {{open_squiggle}}professor.title{{close_squiggle}} {{open_squiggle}}professor.last_name{{close_squiggle}}</a>
+
+												</div>
+											</div>
+										</div>
+									</div>
+									
+									<div class="col-xs-12 col-sm-6 col-md-6">
+										<div class="row">
+											<div class="col-xs-12">
+													<h3 class="text-center red_text">Assignments</h3>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-xs-12">
+												<div class="list-group">
+													<a href="#" ng-repeat="assignment in assignments" ng-click="uploadAssignment(assignment.assignmentId)" ng-class="list-group-item" class="list-group-item text-center"> {{ open_squiggle }} assignment.name {{close_squiggle}} </a>
+												</div>		
+											</div>
+										</div>
+										
+									</div>
+									<div class="col-xs-12 col-sm-12 col-md-12">
+
+										
+										<div class="row">
+											<div class="col-xs-12">
+			      								<form action="/upload_file" method="POST" enctype=multipart/form-data>
+			      									<input type="file"  name="file" id="choose_file" style="visibility:hidden;" >	
+			      									<input type=submit value="Compare" class ="btn btn-primary red-background full-width" id="upload">
+			      									<input type="text" ng-model="assignment_id" style="visibility:hidden" name="assignment_id">
+			      								</form>
+      								
+      										</div>
+											
+										</div>
+										
+									</div>
+								</div> <!-- end row -->
+						</div>
+					</div>
+				
+		</section>
+
+        {% endblock %}
+        <header class="row intro">
+			<div class="col-full">
+				<p class="red_text">
+					© 2015 - Python Checker
+				</p>
+			</div>
+		</header>
+	</div>
+
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<script>
+	if (!window.jQuery) 
+	{
+	    document.write('<script src="/static/js/vendor/jquery.1.11.min.js"><\/script>');
+	}
+	</script>
+
+
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js"></script>
+
+    <script src="/static/js/vendor/jquery.1.11.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/angular.min.js"></script>
+
+	<script src="/static/js/vendor/jquery.fluidbox.min.js"></script>
+	<script src="/static/js/main.js"></script>
+	<script src="/static/js/chris.js"></script>
+	<!--<script src="/static/js/bootstrap.js"></script>-->
+	<script src="/static/js/npm.js"></script>
+	<script>
+		require('../../js/transition.js');
+		require('../../js/alert.js');
+		require('../../js/button.js');
+		require('../../js/carousel.js');
+		require('../../js/collapse.js');
+		require('../../js/dropdown.js');
+		require('../../js/modal.js');
+		require('../../js/tooltip.js');
+		require('../../js/popover.js');
+		require('../../js/scrollspy.js');
+		require('../../js/tab.js');
+		require('../../js/affix.js');
+	</script>
+	<script src="/static/js/bootstrap-filestyle.min.js"> </script>
+	<script>
+	  //$('#popoverOption').popover({ trigger: "hover" });
+	  //(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  //(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  //m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  //})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	  //ga('create', 'YOUR_GOOGLE_ANALYTICS_ID', 'auto');
+	  //ga('send', 'pageview');
+	  //$(":file").filestyle();
+
+	</script>
+</div>
+</body>
+</html>
+

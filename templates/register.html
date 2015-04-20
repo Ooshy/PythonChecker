@@ -1,0 +1,22 @@
+{% extends "index.html" %}
+
+{% block subtitle %}Register{% endblock %}
+{% block content %}
+
+<section class="intro">
+    
+	<form method="POST" action="/register">
+
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email">
+        
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password">
+    
+        <input type="submit" value="register" />
+    
+    </form>
+	
+</section>
+
+{% endblock %}

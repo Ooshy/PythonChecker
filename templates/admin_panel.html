@@ -1,0 +1,416 @@
+{% extends "index.html" %}
+{% block subtitle %}Administrator Panel{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="panel panel-default dark-panel">
+          <div class="panel-body dark-panel">
+                
+                    <div class="row" style="margin-bottom:10px">
+                        <div class="col-xs-12">
+                            <a class="btn btn-primary full-width" ng-click="loadAssignments({{ professor.id }})" data-toggle="modal" data-target="#basicModal">Assignments</a>
+                        </div>
+                    </div>
+                    {% if 'S-Administrator' in session %}
+                        <div class="row" style="margin-bottom:10px">
+                            <div class="col-xs-12">
+                                <a class="btn btn-primary full-width"  ng-click="loadAdministrators()" data-toggle="modal" data-target="#manageAdministrators">Administrators</a></a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="row" style="margin-bottom:10px">
+                        <div class="col-xs-12">
+                            <a class="btn btn-primary full-width"   data-toggle="modal" data-target="#tokenValidator">Token Validator</a>
+                        </div>
+                    </div>
+                
+                
+                <div class="modal fade" id="manageAdministrators" tabindex="-1" role="dialog" aria-labelledby="manageAdministrators" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content ">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title text-center" id="myModalLabel">Administrators</h4>
+                            </div>
+                            <div class="modal-body">
+                              
+                                
+                                  
+                                  <div class="list-group">
+										<a href="#" ng-repeat="administrator in administrators" data-toggle="modal" data-target="#editAdministratorModal" ng-click="editAdministrator(administrator)" ng-class="list-group-item" class="list-group-item text-center"> {{ open_squiggle }} administrator.title {{close_squiggle}} {{ open_squiggle }} administrator.firstname {{close_squiggle}} {{ open_squiggle }} administrator.lastname {{close_squiggle}}</a>
+								   </div>	
+                               
+                              
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" ng-click="prep_add_administrator()"  data-toggle="modal" data-target="#addAdministratorModal" class ="btn btn-primary red-background full-width" id="upload">Add</button>
+                            </div>
+                        </div>
+                   </div>
+                </div>    
+                
+                <div class="modal fade" id="tokenValidator" tabindex="-1" role="dialog" aria-labelledby="tokenValidator" aria-hidden="true">
+                    <div class="modal-dialog">
+                            <div class="modal-content ">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                    <h4 class="modal-title text-center" id="myModalLabel">Token Validation</h4>
+                                </div>
+                                <div class="modal-body">
+                                  <div class="" role="alert" id="token_message">
+                                    </div>
+                                    <div class="input-group input-group-lg">
+                                      <span class="input-group-addon" id="sizing-addon1"> <span class="glyphicon glyphicon-search"></span></span>
+                                      <input name="token" type="text" class="form-control" placeholder="Token #"ng-model="token" aria-describedby="sizing-addon1">
+                                    </div>
+                                  
+                                </div>
+                                <div class="modal-footer">
+                                    <button ng-click="validate_token()" class="btn btn-primary full-width" >Validate</button>
+                                </div>
+                            </div>
+                        </form>
+                   </div>
+                </div>    
+                
+                    
+                    
+                <div class="modal fade" id="basicModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content ">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title text-center" id="myModalLabel">Assignments</h4>
+                            </div>
+                            <div class="modal-body">
+                              <table class="table table-striped" style="background-color:#FFFFFF">
+                                
+                                <tbody>
+                                     <!--<tr ng-repeat="assignemnt in assignments">-->
+                                     <!--   <td ng-bind="assignment">{{ open_squiggle }} assignment.name {{close_squiggle}}</td>-->
+                                     <!--   <td><a ng-click="editAssignment(assignment.id)">Edit</a></td>-->
+                                     <!--</tr>-->
+                                    <!--{% for assignment in assignments %}-->
+                                    <!--    <tr><td>{{assignment.name}}</td><td><a  data-toggle="modal" data-target="#editModal" class="btn btn-primary full-width">Edit</a></td></tr>-->
+                                    <!--{% endfor %}-->
+                                  <div class="list-group">
+										<a href="#" ng-repeat="assignment in assignments" data-toggle="modal" data-target="#editModal"  ng-click="editAssignment(assignment)" ng-class="list-group-item" class="list-group-item text-center"> {{ open_squiggle }} assignment.name {{close_squiggle}} </a>
+								   </div>	
+                                </tbody>
+                            </table>
+                            </div>
+                            <div class="modal-footer">
+                                <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                                <button type="button" class="btn btn-primary full-width" data-toggle="modal" data-target="#addAssignmentModal">Add</button>
+                            </div>
+                        </div>
+                   </div>
+                </div>
+                <div class="modal fade" id="addAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="addAssignmentModal" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content ">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title text-center" id="myModalLabel" >Add New Assignment</h4>
+                            </div>
+                            <form action="/add_assignment" method="POST" enctype=multipart/form-data>
+                                <div class="modal-body">
+                                    <div class="list-group">
+    									<!--<a ng-repeat="professor in professors" ng-click="loadAssignments(professor)" ng-class="list-group-item" class="list-group-item text-center"> {{open_squiggle}}professor.title{{close_squiggle}} {{open_squiggle}}professor.last_name{{close_squiggle}}</a>-->
+    									
+    									    
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									        <div class="text-center"><b>Name</b></div>
+    									   </div>
+    									   
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAssignment.name"  name="assignmentName"/>
+    									   </div>
+    									</div>
+    									
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									       <div class="text-center"><b>Input File</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input type="file"  name="input_file"  >		       
+    									   </div>
+    							        </div>
+    							        <div class="row">
+    									   <div class="col-xs-3">
+    								            <div class="text-center"><b>Comparison File</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input type="file"  name="comp_file" >		       
+    									   </div>
+    									</div>
+    								</div>	
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="row">
+                                        <!--<div class="col-xs-4">-->
+                                        <!--    <button type="button" class="btn btn-default full-width">Delete</button>        -->
+                                        <!--</div>-->
+                                        <div class="col-xs-6">
+                                            <button type="button" class="btn btn-default full-width" data-dismiss="modal">Close</button>        
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <input type=submit value="Update"  class ="btn btn-primary red-background full-width" id="upload">        
+                                        </div>
+                                        <input type="text" ng-model="assignment_id" style="visibility:hidden" name="assignmentId">
+                                    </div>
+                                    
+                                    
+                                    
+                                </div>
+                            </form>
+                        </div>
+                   </div>
+                </div>
+                <div class="modal fade" id="editAdministratorModal" tabindex="-1" role="dialog" aria-labelledby="editAdministratorModal" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content ">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title text-center" id="myModalLabel" >Edit {{ open_squiggle }} currentAdministrator.title {{ close_squiggle }} {{ open_squiggle }} currentAdministrator.firstname {{ close_squiggle }} {{ open_squiggle }} currentAdministrator.lastname {{ close_squiggle }}</h4>
+                            </div>
+                            <!--<form action="/edit_administrator" method="POST" enctype=multipart/form-data>-->
+                                <div class="modal-body">
+                                    <div class="list-group">
+    									<!--<a ng-repeat="professor in professors" ng-click="loadAssignments(professor)" ng-class="list-group-item" class="list-group-item text-center"> {{open_squiggle}}professor.title{{close_squiggle}} {{open_squiggle}}professor.last_name{{close_squiggle}}</a>-->
+    									
+    									<div class="row">
+    									   <div class="col-xs-3">
+    								        <div class="text-center"><b>Title:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.title"  name="administratorFirstName"/>
+    									   </div>
+    									</div>    
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									        <div class="text-center"><b>First Name:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.firstname"  name="administratorFirstName"/>
+    									   </div>
+    									</div>
+    									<div class="row">
+    									   <div class="col-xs-3">
+    								    	<div class="text-center"><b>Last Name:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.lastname"  name="administratorLastName"/>
+    									   </div>
+    									</div>
+    									
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									    <div class="text-center"><b>Role:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <!--<select class="form-control text-center">-->
+                    <!--                                <option value="Administrator" class="text-center">Administrator</option>-->
+                    <!--                            </select>-->
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.role"  name="administratorRole"/>
+    									   </div>
+    									</div>
+    						
+    								</div>	
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="row">
+                                        <!--<div class="col-xs-4">-->
+                                        <!--    <button type="button" class="btn btn-default full-width">Delete</button>        -->
+                                        <!--</div>-->
+                                        <div class="col-xs-6">
+                                            <button type="button" class="btn btn-default full-width" data-dismiss="modal">Close</button>        
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <button type="button"  ng-click="updateAdministrator()" class ="btn btn-primary red-background full-width" id="upload">Update</button>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    
+                                    
+                                </div>
+                            <!--</form>-->
+                        </div>
+                   </div>
+                </div>
+                <div class="modal fade" id="addAdministratorModal" tabindex="-1" role="dialog" aria-labelledby="addAdministratorModal" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content ">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title text-center" id="myModalLabel" >Add New Administrator</h4>
+                            </div>
+                            <!--<form action="/edit_administrator" method="POST" enctype=multipart/form-data>-->
+                                <div class="modal-body">
+                                    <div class="list-group">
+    									<!--<a ng-repeat="professor in professors" ng-click="loadAssignments(professor)" ng-class="list-group-item" class="list-group-item text-center"> {{open_squiggle}}professor.title{{close_squiggle}} {{open_squiggle}}professor.last_name{{close_squiggle}}</a>-->
+    									
+    									<div class="row">
+    									   <div class="col-xs-3">
+    								        <div class="text-center"><b>Title:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.title"  name="administratorFirstName"/>
+    									   </div>
+    									</div>    
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									        <div class="text-center"><b>First Name:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.firstname"  name="administratorFirstName"/>
+    									   </div>
+    									</div>
+    									<div class="row">
+    									   <div class="col-xs-3">
+    								    	<div class="text-center"><b>Last Name:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.lastname"  name="administratorLastName"/>
+    									   </div>
+    									</div>
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									    <div class="text-center"><b>Role:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <!--<select class="form-control text-center">-->
+                    <!--                                <option value="Administrator" class="text-center">Administrator</option>-->
+                    <!--                            </select>-->
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.role"  name="administratorRole"/>
+    									   </div>
+    									</div>
+    									<div class="row">
+    									   <div class="col-xs-3">
+    								    	<div class="text-center"><b>Username:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAdministrator.username"  name="administratorLastName"/>
+    									   </div>
+    									</div>
+    									<div class="row">
+    									   <div class="col-xs-3">
+    								    	<div class="text-center"><b>Password:</b></div>
+    									   </div>
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="password" ng-model="currentAdministrator.password"  name="administratorLastName"/>
+    									   </div>
+    									</div>
+    									
+    						
+    								</div>	
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="row">
+                                        <!--<div class="col-xs-4">-->
+                                        <!--    <button type="button" class="btn btn-default full-width">Delete</button>        -->
+                                        <!--</div>-->
+                                        <div class="col-xs-6">
+                                            <button type="button" class="btn btn-default full-width" data-dismiss="modal">Close</button>        
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <button type="button"  ng-click="addAdministrator()" class ="btn btn-primary red-background full-width" id="upload">Add</button>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    
+                                    
+                                </div>
+                            <!--</form>-->
+                        </div>
+                   </div>
+                </div>
+                <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content ">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title text-center" id="myModalLabel"ng-bind="currentAssignment.name">{{open_squiggle}} currentAssignment {{close_squiggle}} </h4>
+                            </div>
+                            <form action="/edit_assignment" method="POST" enctype=multipart/form-data>
+                                <div class="modal-body">
+                                    <div class="list-group">
+    									<!--<a ng-repeat="professor in professors" ng-click="loadAssignments(professor)" ng-class="list-group-item" class="list-group-item text-center"> {{open_squiggle}}professor.title{{close_squiggle}} {{open_squiggle}}professor.last_name{{close_squiggle}}</a>-->
+    									
+    									    
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									        <div class="text-center"><b>Name</b></div>
+    									   </div>
+    									   
+    									   <div class="col-xs-9">
+    									       <input class="full-width text-center" type="text" ng-model="currentAssignment.name"  name="assignmentName"/>
+    									   </div>
+    									</div>
+    									<div class="row">
+    									    <div class="col-xs-3">
+    									    </div>
+    									    <div class="col-xs-4">
+    									       <div class="text-center"><b>Existing File</b></div>
+    									    </div>
+    									    <div class="col-xs-5">
+    									       <div class="text-center"><b>New File</b></div>
+    									    </div>
+    									</div>
+    									<div class="row">
+    									   <div class="col-xs-3">
+    									       <div class="text-center"><b>Input File</b></div>
+    									   </div>
+    									   <div class="col-xs-4">
+    									       <input type="text" class="text-center" readOnly=true, ng-model="currentAssignment['input_file_path']"/>
+    									   </div>
+    									   <div class="col-xs-5">
+    									       <input type="file"  name="input_file"  >		       
+    									   </div>
+    							        </div>
+    							        <div class="row">
+    									   <div class="col-xs-3">
+    								            <div class="text-center"><b>Comparison File</b></div>
+    									   </div>
+    									   <div class="col-xs-4">
+    									       <input type="text" class="text-center" readOnly=true, ng-model="currentAssignment.comparison_file_path"/>
+    									   </div>
+    									   <div class="col-xs-5">
+    									       <input type="file"  name="comp_file" >		       
+    									   </div>
+    									</div>
+    								</div>	
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="row">
+                                        <div class="col-xs-6">
+                                            <button type="button" class="btn btn-default full-width" data-dismiss="modal">Close</button>        
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <input type=submit value="Update"  class ="btn btn-primary red-background full-width" id="upload">        
+                                        </div>
+                                        <input type="text" ng-model="assignment_id" style="visibility:hidden" name="assignmentId">
+                                    </div>
+                                    
+                                    
+                                    
+                                </div>
+                            </form>
+                        </div>
+                   </div>
+                </div>
+    
+          </div>
+        </div>
+    </div>
+    
+        
+    
+ 
+</div>
+
+{% endblock %}

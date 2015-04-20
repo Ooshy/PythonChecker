@@ -1,0 +1,37 @@
+{% extends "index.html" %}
+
+{% block subtitle %}Administrator Login{% endblock %}
+{% block content %}
+
+<section class="intro">
+    {% if user_not_found == True %}
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="alert alert-danger" role="alert">Invalid Username or Password</div>
+        </div>
+    </div>
+    {% endif %}
+	<form method="POST" action="/login">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="username" class = "red_text">Username:</label>
+                <input class = "full-width" type="text" name="username" id="username">
+            </div>
+            <div class="col-md-6">
+                <label for="password" class="red_text">Password:</label>
+                <input class = "full-width" type="password" name="password" id="password">
+            </div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-xs-12">
+                <input class = "btn btn-primary full-width"type="submit" value="Login" />    
+            </div>
+        </div>
+        
+    
+    </form>
+	
+</section>
+
+{% endblock %}
